@@ -1,5 +1,6 @@
 dataset
 input
 model
+doc
 **/__pycache__
 **/.ipynb_checkpoints

@@ -15,9 +15,9 @@ class TrainableModel:
     def __init__(self, num_encoder_tokens, num_decoder_tokens, latent_dim=50):        
         self.latent_dim = latent_dim
 
-        encoder_inputs = Input(shape=(None,))
-        enc_emb = Embedding(num_encoder_tokens, latent_dim, mask_zero=True)(encoder_inputs)
-        encoder_lstm = LSTM(latent_dim, return_state=True)
+        encoder_inputs = Input(shape=(None,), name='encoder_input')
+        enc_emb = Embedding(num_encoder_tokens, latent_dim, mask_zero=True, name='encoder_embedding')(encoder_inputs)
+        encoder_lstm = LSTM(latent_dim, return_state=True, name='encoder_lstm')
         encoder_outputs, state_h, state_c = encoder_lstm(enc_emb)
         # We discard `encoder_outputs` and only keep the states.
         encoder_states = [state_h, state_c]
@@ -25,16 +25,15 @@ class TrainableModel:
         self.encoder_states = encoder_states
         
         # Set up the decoder, using `encoder_states` as initial state.
-        decoder_inputs = Input(shape=(None,))
-        dec_emb_layer = Embedding(num_decoder_tokens, latent_dim, mask_zero=True)
+        decoder_inputs = Input(shape=(None,), name='decoder_input')
+        dec_emb_layer = Embedding(num_decoder_tokens, latent_dim, mask_zero=True, name='decoder_embedding')
         dec_emb = dec_emb_layer(decoder_inputs)
         # We set up our decoder to return full output sequences,
         # and to return internal states as well. We don't use the
         # return states in the training model, but we will use them in inference.
-        decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-        decoder_outputs, _, _ = decoder_lstm(dec_emb,
-                                             initial_state=encoder_states)
-        decoder_dense = Dense(num_decoder_tokens, activation='softmax')
+        decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True, name='decoder_lstm')
+        decoder_outputs, _, _ = decoder_lstm(dec_emb, initial_state=encoder_states)
+        decoder_dense = Dense(num_decoder_tokens, activation='softmax', name='decoder_dense')
         decoder_outputs = decoder_dense(decoder_outputs)
         
         self.decoder_inputs = decoder_inputs
@@ -44,7 +43,7 @@ class TrainableModel:
 
         # Define the model that will turn
         # `encoder_input_data` & `decoder_input_data` into `decoder_target_data`
-        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+        model = Model([encoder_inputs, decoder_inputs], decoder_outputs, name='trainable_model')
         model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
                 
         self.model = model

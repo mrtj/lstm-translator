@@ -81,8 +81,8 @@ class Predictor:
 
     @staticmethod
     def create_decoder_model(decoder_inputs, decoder_embedding_layer, decoder_lstm, decoder_dense, latent_dim=50):
-        decoder_state_input_h = Input(shape=(latent_dim,))
-        decoder_state_input_c = Input(shape=(latent_dim,))
+        decoder_state_input_h = Input(shape=(latent_dim,), name='encoder_hidden_state')
+        decoder_state_input_c = Input(shape=(latent_dim,), name='encoder_cell_state')
         decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
 
         dec_emb2 = decoder_embedding_layer(decoder_inputs) # Get the embeddings of the decoder sequence
